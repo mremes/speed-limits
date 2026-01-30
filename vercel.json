@@ -1,5 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/((?!helsinki-speeds\\.json).*)", "destination": "/api" }
-  ]
-}

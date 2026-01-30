@@ -3,3 +3,5 @@ dist
 .vercel
 helsinki-speeds-partial.json
 helsinki-speeds.json
+infra/venv
+infra/__pycache__

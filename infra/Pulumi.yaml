@@ -1,0 +1,7 @@
+name: speed-limits-infra
+description: Azure Static Website for speed limits app
+runtime: python
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: azure-python

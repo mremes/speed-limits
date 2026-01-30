@@ -5,6 +5,7 @@
   "main": "index.tsx",
   "scripts": {
     "dev": "tsx index.tsx",
+    "build": "tsx build.ts",
     "fetch": "tsx fetch-data.ts"
   },
   "keywords": [],

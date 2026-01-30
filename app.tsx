@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { handle } from "hono/vercel";
 import type { FC } from "hono/jsx";
 
 const COLORS: Record<string, string> = {
@@ -214,7 +213,6 @@ function connectMqtt() {
       const excess = (speedKmh != null && limitKmh != null) ? speedKmh - limitKmh : 0;
       const speeding = excess > SPEEDING_THRESHOLD;
 
-      // --- Speeding trail tracking ---
       if (excess > SPEEDING_THRESHOLD && limitKmh != null) {
         if (!busSpeedingState[id]) {
           busSpeedingState[id] = {
@@ -262,12 +260,9 @@ function connectMqtt() {
           }
         }
       } else {
-        if (busSpeedingState[id] && !busSpeedingState[id].committed) {
-        }
         delete busSpeedingState[id];
       }
 
-      // --- Bus marker ---
       const popupHtml =
         "<b>Bussi " + route + "</b><br>" +
         "Nopeus: " + speedStr + " km/h<br>" +
@@ -394,8 +389,11 @@ const MapPage: FC = () => (
   </Layout>
 );
 
-const app = new Hono();
+export const app = new Hono();
 
 app.get("/", (c) => c.html(<MapPage />));
 
-export default handle(app);
+export async function renderHtml(): Promise<string> {
+  const res = await app.fetch(new Request("http://localhost/"));
+  return res.text();
+}
