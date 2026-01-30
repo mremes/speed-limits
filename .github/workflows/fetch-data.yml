@@ -18,11 +18,13 @@ jobs:
       - name: Fetch speed limit data
         run: npm run fetch
 
-      - name: Commit updated data
+      - name: Upload to Azure Storage
         run: |
-          cp helsinki-speeds.json public/helsinki-speeds.json
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/helsinki-speeds.json
-          git diff --cached --quiet || git commit -m "Update speed limit data"
-          git push
+          az storage blob upload \
+            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+            --account-key "${{ secrets.AZURE_STORAGE_KEY }}" \
+            --container-name '$web' \
+            --name helsinki-speeds.json \
+            --file helsinki-speeds.json \
+            --content-type application/json \
+            --overwrite
