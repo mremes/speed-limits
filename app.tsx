@@ -406,12 +406,36 @@ function renderTrailPanel() {
       }
     });
   });
-  // Draw sparklines — each stretched to fill full width
+  drawSparklines(list, visible);
+}
+
+let _sparklineVisible = [];
+let _sparklineList = null;
+
+function drawSparklines(list, visible) {
+  _sparklineList = list;
+  _sparklineVisible = visible;
+  _drawSparklines();
+}
+
+function _drawSparklines() {
+  const list = _sparklineList;
+  const visible = _sparklineVisible;
+  if (!list || !visible.length) return;
+  const MAX_PTS = 100;
   list.querySelectorAll(".trail-sparkline").forEach(canvas => {
     const idx = parseInt(canvas.getAttribute("data-idx"), 10);
     const tr = visible[idx];
     if (!tr || !tr.state.timeSeries || tr.state.timeSeries.length < 2) return;
-    const ts = tr.state.timeSeries;
+    const raw = tr.state.timeSeries;
+    // Downsample if too many points
+    let pts = raw;
+    if (raw.length > MAX_PTS) {
+      pts = [];
+      for (let k = 0; k < MAX_PTS; k++) {
+        pts.push(raw[Math.round(k * (raw.length - 1) / (MAX_PTS - 1))]);
+      }
+    }
     const dpr = window.devicePixelRatio || 1;
     const cssW = 100, cssH = 40;
     canvas.style.width = cssW + "px";
@@ -421,10 +445,13 @@ function renderTrailPanel() {
     const ctx = canvas.getContext("2d");
     ctx.scale(dpr, dpr);
     const w = cssW, h = cssH;
-    const speeds = ts.map(p => p.speed);
-    const limit = ts[0].limit;
-    const minY = Math.min(limit - 2, Math.min(...speeds));
-    const maxY = Math.max(limit + 2, Math.max(...speeds));
+    const speeds = pts.map(p => p.speed);
+    const limit = pts[0].limit;
+    let minY = limit - 2, maxY = limit + 2;
+    for (let k = 0; k < speeds.length; k++) {
+      if (speeds[k] < minY) minY = speeds[k];
+      if (speeds[k] > maxY) maxY = speeds[k];
+    }
     const rangeY = maxY - minY || 1;
     const xStep = w / (speeds.length - 1);
     // Limit line (green dashed)
@@ -450,6 +477,8 @@ function renderTrailPanel() {
     ctx.stroke();
   });
 }
+
+setInterval(_drawSparklines, 2000);
 
 let allVehicles = [];
 let allRoutes = [];
